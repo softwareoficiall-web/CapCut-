@@ -2,27 +2,27 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WebCut Pro - Estilo CapCut</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>WebCut Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-        body { background-color: #121212; color: #f1f1f1; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        body { background-color: #121212; color: #f1f1f1; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
         .timeline-track::-webkit-scrollbar { height: 6px; }
         .timeline-track::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
     </style>
 </head>
 <body class="h-screen flex flex-col justify-between">
 
-    <!-- TOPO: Player e Botão Exportar -->
-    <header class="bg-black/80 px-4 py-2.5 flex justify-between items-center border-b border-zinc-800">
+    <!-- TOPO: Player e Botão Tela Cheia / Exportar -->
+    <header class="bg-black/90 px-4 py-2 flex justify-between items-center border-b border-zinc-800">
         <div class="flex items-center gap-2">
-            <span class="text-xs text-zinc-400 font-bold">PROJETO CAPCUT WEB</span>
+            <button id="btnFullscreen" class="bg-zinc-800 text-amber-400 text-[10px] px-2 py-1 rounded font-bold border border-amber-500/30">🖥️ Tela Cheia</button>
         </div>
-        <div class="flex items-center gap-3">
-            <button class="bg-zinc-800 text-amber-400 text-xs px-2.5 py-1 rounded-md font-bold border border-amber-500/30">UHD com IA</button>
-            <button id="btnExport" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-4 py-1.5 rounded-lg text-xs transition">Exportar</button>
+        <div class="flex items-center gap-2">
+            <span class="text-[10px] text-zinc-400 font-bold hidden sm:inline">PROJETO CAPCUT WEB</span>
+            <button id="btnExport" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs transition">Exportar</button>
         </div>
     </header>
 
@@ -30,67 +30,67 @@
     <div class="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
         <video id="mainVideo" class="max-h-full max-w-full object-contain" playsinline></video>
         <!-- Legenda Estilo CapCut na Tela -->
-        <div id="subtitleDisplay" class="absolute bottom-8 left-1/2 -translate-x-1/2 text-center text-white font-black text-2xl drop-shadow-[0_3px_3px_rgba(0,0,0,0.9)] stroke-black font-['Fredoka']">
+        <div id="subtitleDisplay" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-center text-white font-black text-xl md:text-2xl drop-shadow-[0_3px_3px_rgba(0,0,0,0.9)] font-['Fredoka'] px-2 pointer-events-none">
             <!-- As legendas automáticas aparecem aqui -->
         </div>
         <!-- Indicador de Tempo do Player -->
-        <div class="absolute top-3 left-3 bg-black/60 px-2 py-0.5 rounded text-[11px] text-zinc-300 font-mono">
+        <div class="absolute top-2 left-2 bg-black/60 px-2 py-0.5 rounded text-[10px] text-zinc-300 font-mono">
             <span id="timeDisplay">00:00 / 00:00</span>
         </div>
     </div>
 
     <!-- LINHA DO TEMPO (TIMELINE) -->
-    <div class="bg-zinc-900 border-t border-zinc-800 p-3 flex flex-col gap-2">
+    <div class="bg-zinc-900 border-t border-zinc-800 p-2.5 flex flex-col gap-2">
         <div class="flex justify-between items-center text-xs text-zinc-400">
-            <div class="flex items-center gap-3">
-                <button id="btnPlayPause" class="w-8 h-8 rounded-full bg-zinc-800 text-white flex items-center justify-center text-sm font-bold">▶</button>
-                <label class="bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1 rounded-md cursor-pointer font-semibold text-xs flex items-center gap-1">
-                    ➕ Adicionar Vídeos (Vários)
+            <div class="flex items-center gap-2">
+                <button id="btnPlayPause" class="w-7 h-7 rounded-full bg-zinc-800 text-white flex items-center justify-center text-xs font-bold">▶</button>
+                <label class="bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 py-1 rounded-md cursor-pointer font-semibold text-[11px] flex items-center gap-1">
+                    ➕ Adicionar Vídeos
                     <input type="file" id="multiVideoUpload" accept="video/*" multiple class="hidden">
                 </label>
             </div>
-            <span id="clipCountText" class="text-[11px]">0 clipes na timeline</span>
+            <span id="clipCountText" class="text-[10px]">0 clipes</span>
         </div>
 
-        <!-- Trilha de Clipes (Estilo Caixinhas do CapCut) -->
-        <div id="timelineContainer" class="timeline-track flex gap-2 overflow-x-auto py-2 px-1 bg-zinc-950/80 rounded-xl min-h-[76px] items-center border border-zinc-800">
-            <div class="text-zinc-500 text-xs italic px-4 select-none">Nenhum vídeo adicionado. Clique em "Adicionar Vídeos" para juntar 1, 5 ou 10+ vídeos!</div>
+        <!-- Trilha de Clipes (Caixinhas do CapCut) -->
+        <div id="timelineContainer" class="timeline-track flex gap-2 overflow-x-auto py-1 px-1 bg-zinc-950/80 rounded-xl min-h-[64px] items-center border border-zinc-800">
+            <div class="text-zinc-500 text-[11px] italic px-3 select-none">Toque em "Adicionar Vídeos" para juntar vários vídeos na timeline...</div>
         </div>
     </div>
 
-    <!-- BARRA DE FERRAMENTAS INFERIOR (Igual ao CapCut) -->
-    <nav class="bg-zinc-950 border-t border-zinc-900 grid grid-cols-7 py-2.5 px-1 text-center text-[10px] text-zinc-400">
-        <button id="toolEdit" class="flex flex-col items-center gap-1 hover:text-white">
-            <span class="text-base">✂️</span>
+    <!-- BARRA DE FERRAMENTAS INFERIOR (Estilo CapCut) -->
+    <nav class="bg-zinc-950 border-t border-zinc-900 grid grid-cols-7 py-2 px-1 text-center text-[10px] text-zinc-400">
+        <button id="toolEdit" class="flex flex-col items-center gap-0.5 hover:text-white">
+            <span class="text-sm">✂️</span>
             <span>Editar</span>
         </button>
-        <button id="toolAudio" class="flex flex-col items-center gap-1 hover:text-white">
-            <span class="text-base">🎵</span>
+        <button id="toolAudio" class="flex flex-col items-center gap-0.5 hover:text-white">
+            <span class="text-sm">🎵</span>
             <span>Áudio</span>
         </button>
-        <button id="toolText" class="flex flex-col items-center gap-1 hover:text-white">
-            <span class="text-base">✍️</span>
+        <button id="toolText" class="flex flex-col items-center gap-0.5 hover:text-white">
+            <span class="text-sm">✍️</span>
             <span>Texto</span>
         </button>
-        <button id="toolEffects" class="flex flex-col items-center gap-1 hover:text-white">
-            <span class="text-base">✨</span>
+        <button id="toolEffects" class="flex flex-col items-center gap-0.5 hover:text-white">
+            <span class="text-sm">✨</span>
             <span>Efeitos</span>
         </button>
-        <button id="toolLayer" class="flex flex-col items-center gap-1 hover:text-white">
-            <span class="text-base">🖼️</span>
+        <button id="toolLayer" class="flex flex-col items-center gap-0.5 hover:text-white">
+            <span class="text-sm">🖼️</span>
             <span>Camada</span>
         </button>
-        <button id="toolSubtitles" class="flex flex-col items-center gap-1 hover:text-amber-400 font-semibold">
-            <span class="text-base">💬</span>
+        <button id="toolSubtitles" class="flex flex-col items-center gap-0.5 hover:text-amber-400 font-semibold">
+            <span class="text-sm">💬</span>
             <span>Legendas</span>
         </button>
-        <button id="toolFilters" class="flex flex-col items-center gap-1 hover:text-white">
-            <span class="text-base">🎨</span>
+        <button id="toolFilters" class="flex flex-col items-center gap-0.5 hover:text-white">
+            <span class="text-sm">🎨</span>
             <span>Filtros</span>
         </button>
     </nav>
 
-    <!-- SCRIPT DE GERENCIAMENTO DE MÚLTIPLOS VÍDEOS E LEGENDA -->
+    <!-- SCRIPT DO APLICATIVO -->
     <script>
         const videoElement = document.getElementById('mainVideo');
         const timelineContainer = document.getElementById('timelineContainer');
@@ -98,31 +98,45 @@
         const timeDisplay = document.getElementById('timeDisplay');
         const subtitleDisplay = document.getElementById('subtitleDisplay');
         const clipCountText = document.getElementById('clipCountText');
+        const btnFullscreen = document.getElementById('btnFullscreen');
 
-        let playlist = []; // Array para guardar vários vídeos
+        let playlist = [];
         let currentClipIndex = 0;
 
-        // Adicionar Múltiplos Vídeos (Juntar 10+ vídeos)
+        // Ativar Tela Cheia Real para sumir com as barras do navegador
+        btnFullscreen.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    alert('Erro ao tentar entrar em tela cheia: ' + err.message);
+                });
+                btnFullscreen.textContent = '❌ Sair Tela Cheia';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+                btnFullscreen.textContent = '🖥️ Tela Cheia';
+            }
+        });
+
+        // Adicionar Vários Vídeos
         document.getElementById('multiVideoUpload').addEventListener('change', (e) => {
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
 
             if (playlist.length === 0) {
-                timelineContainer.innerHTML = ''; // Remove o texto placeholder
+                timelineContainer.innerHTML = '';
             }
 
-            files.forEach((file, index) => {
+            files.forEach((file) => {
                 const videoUrl = URL.createObjectURL(file);
                 playlist.push({ url: videoUrl, name: file.name });
 
-                // Criar caixinha visual na timeline (igualzinho ao CapCut)
                 const clipBox = document.createElement('div');
-                clipBox.className = 'flex-shrink-0 w-28 h-14 bg-zinc-800 border-2 border-amber-500/60 rounded-lg overflow-hidden relative cursor-pointer flex flex-col justify-end p-1 shadow';
+                clipBox.className = 'flex-shrink-0 w-24 h-12 bg-zinc-800 border-2 border-amber-500/60 rounded-lg overflow-hidden relative cursor-pointer flex flex-col justify-end p-1 shadow';
                 clipBox.innerHTML = `
-                    <div class="text-[9px] text-white font-bold truncate bg-black/60 px-1 rounded">${file.name}</div>
+                    <div class="text-[8px] text-white font-bold truncate bg-black/70 px-1 rounded">${file.name}</div>
                 `;
                 
-                // Ao clicar na caixinha, pula direto para aquele vídeo na timeline
                 const assignedIndex = playlist.length - 1;
                 clipBox.addEventListener('click', () => {
                     playClip(assignedIndex);
@@ -131,9 +145,8 @@
                 timelineContainer.appendChild(clipBox);
             });
 
-            clipCountText.textContent = `${playlist.length} clipes na timeline`;
+            clipCountText.textContent = `${playlist.length} clipes`;
 
-            // Se for o primeiro vídeo carregado, já inicia o player
             if (playlist.length === files.length) {
                 playClip(0);
             }
@@ -147,7 +160,7 @@
             btnPlayPause.textContent = '⏸';
         }
 
-        // Quando um vídeo da playlist acaba, passa automaticamente para o próximo (Juntar vídeos perfeitamente)
+        // Passa automaticamente para o próximo vídeo quando um acaba (Juntar sequencial)
         videoElement.addEventListener('ended', () => {
             if (currentClipIndex < playlist.length - 1) {
                 playClip(currentClipIndex + 1);
@@ -156,27 +169,23 @@
             }
         });
 
-        // Botão Play / Pause
         btnPlayPause.addEventListener('click', () => {
             if (playlist.length === 0) {
-                alert('Adicione vídeos primeiro na timeline!');
+                alert('Adicione vídeos na timeline primeiro!');
                 return;
             }
             if (videoElement.paused) {
                 videoElement.play();
                 btnPlayPause.textContent = '⏸';
             } else {
-                videoElement.pause();
-                btnPlayPause.textContent = '▶';
+                videoElement.paused ? videoElement.play() : videoElement.pause();
+                btnPlayPause.textContent = videoElement.paused ? '▶' : '⏸';
             }
         });
 
-        // Atualizar Relógio do Player
         videoElement.addEventListener('timeupdate', () => {
             if (videoElement.duration) {
-                const current = formatTime(videoElement.currentTime);
-                const duration = formatTime(videoElement.duration);
-                timeDisplay.textContent = `${current} / ${duration}`;
+                timeDisplay.textContent = `${formatTime(videoElement.currentTime)} / ${formatTime(videoElement.duration)}`;
             }
         });
 
@@ -186,11 +195,11 @@
             return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         }
 
-        // Legendas Automáticas por Voz (Web Speech API)
+        // Legendas Automáticas por Voz
         document.getElementById('toolSubtitles').addEventListener('click', () => {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
-                alert('Seu navegador não suporta geração automática de legendas.');
+                alert('Seu navegador não suporta legendas automáticas.');
                 return;
             }
 
@@ -200,7 +209,7 @@
             recognition.interimResults = true;
 
             recognition.onstart = () => {
-                subtitleDisplay.textContent = 'Ouvindo áudio para gerar legendas...';
+                subtitleDisplay.textContent = 'Ouvindo áudio...';
             };
 
             recognition.onresult = (event) => {
@@ -219,13 +228,12 @@
             }
         });
 
-        // Botão Exportar
         document.getElementById('btnExport').addEventListener('click', () => {
             if (playlist.length === 0) {
-                alert('Não há vídeos na timeline para exportar.');
+                alert('Nenhum vídeo na timeline para exportar.');
                 return;
             }
-            alert('Projeto renderizado com sucesso! Pronto para salvar no dispositivo.');
+            alert('Projeto pronto e renderizado com sucesso!');
         });
     </script>
 </body>
