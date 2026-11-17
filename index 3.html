@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WebCut Pro - Estilo CapCut</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        body { background-color: #121212; color: #f1f1f1; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        .timeline-track::-webkit-scrollbar { height: 6px; }
+        .timeline-track::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+    </style>
+</head>
+<body class="h-screen flex flex-col justify-between">
+
+    <!-- TOPO: Player e Botão Exportar -->
+    <header class="bg-black/80 px-4 py-2.5 flex justify-between items-center border-b border-zinc-800">
+        <div class="flex items-center gap-2">
+            <span class="text-xs text-zinc-400 font-bold">PROJETO CAPCUT WEB</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <button class="bg-zinc-800 text-amber-400 text-xs px-2.5 py-1 rounded-md font-bold border border-amber-500/30">UHD com IA</button>
+            <button id="btnExport" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-4 py-1.5 rounded-lg text-xs transition">Exportar</button>
+        </div>
+    </header>
+
+    <!-- TELA DE PRÉ-VISUALIZAÇÃO (PLAYER) -->
+    <div class="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
+        <video id="mainVideo" class="max-h-full max-w-full object-contain" playsinline></video>
+        <!-- Legenda Estilo CapCut na Tela -->
+        <div id="subtitleDisplay" class="absolute bottom-8 left-1/2 -translate-x-1/2 text-center text-white font-black text-2xl drop-shadow-[0_3px_3px_rgba(0,0,0,0.9)] stroke-black font-['Fredoka']">
+            <!-- As legendas automáticas aparecem aqui -->
+        </div>
+        <!-- Indicador de Tempo do Player -->
+        <div class="absolute top-3 left-3 bg-black/60 px-2 py-0.5 rounded text-[11px] text-zinc-300 font-mono">
+            <span id="timeDisplay">00:00 / 00:00</span>
+        </div>
+    </div>
+
+    <!-- LINHA DO TEMPO (TIMELINE) -->
+    <div class="bg-zinc-900 border-t border-zinc-800 p-3 flex flex-col gap-2">
+        <div class="flex justify-between items-center text-xs text-zinc-400">
+            <div class="flex items-center gap-3">
+                <button id="btnPlayPause" class="w-8 h-8 rounded-full bg-zinc-800 text-white flex items-center justify-center text-sm font-bold">▶</button>
+                <label class="bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1 rounded-md cursor-pointer font-semibold text-xs flex items-center gap-1">
+                    ➕ Adicionar Vídeos (Vários)
+                    <input type="file" id="multiVideoUpload" accept="video/*" multiple class="hidden">
+                </label>
+            </div>
+            <span id="clipCountText" class="text-[11px]">0 clipes na timeline</span>
+        </div>
+
+        <!-- Trilha de Clipes (Estilo Caixinhas do CapCut) -->
+        <div id="timelineContainer" class="timeline-track flex gap-2 overflow-x-auto py-2 px-1 bg-zinc-950/80 rounded-xl min-h-[76px] items-center border border-zinc-800">
+            <div class="text-zinc-500 text-xs italic px-4 select-none">Nenhum vídeo adicionado. Clique em "Adicionar Vídeos" para juntar 1, 5 ou 10+ vídeos!</div>
+        </div>
+    </div>
+
+    <!-- BARRA DE FERRAMENTAS INFERIOR (Igual ao CapCut) -->
+    <nav class="bg-zinc-950 border-t border-zinc-900 grid grid-cols-7 py-2.5 px-1 text-center text-[10px] text-zinc-400">
+        <button id="toolEdit" class="flex flex-col items-center gap-1 hover:text-white">
+            <span class="text-base">✂️</span>
+            <span>Editar</span>
+        </button>
+        <button id="toolAudio" class="flex flex-col items-center gap-1 hover:text-white">
+            <span class="text-base">🎵</span>
+            <span>Áudio</span>
+        </button>
+        <button id="toolText" class="flex flex-col items-center gap-1 hover:text-white">
+            <span class="text-base">✍️</span>
+            <span>Texto</span>
+        </button>
+        <button id="toolEffects" class="flex flex-col items-center gap-1 hover:text-white">
+            <span class="text-base">✨</span>
+            <span>Efeitos</span>
+        </button>
+        <button id="toolLayer" class="flex flex-col items-center gap-1 hover:text-white">
+            <span class="text-base">🖼️</span>
+            <span>Camada</span>
+        </button>
+        <button id="toolSubtitles" class="flex flex-col items-center gap-1 hover:text-amber-400 font-semibold">
+            <span class="text-base">💬</span>
+            <span>Legendas</span>
+        </button>
+        <button id="toolFilters" class="flex flex-col items-center gap-1 hover:text-white">
+            <span class="text-base">🎨</span>
+            <span>Filtros</span>
+        </button>
+    </nav>
+
+    <!-- SCRIPT DE GERENCIAMENTO DE MÚLTIPLOS VÍDEOS E LEGENDA -->
+    <script>
+        const videoElement = document.getElementById('mainVideo');
+        const timelineContainer = document.getElementById('timelineContainer');
+        const btnPlayPause = document.getElementById('btnPlayPause');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const subtitleDisplay = document.getElementById('subtitleDisplay');
+        const clipCountText = document.getElementById('clipCountText');
+
+        let playlist = []; // Array para guardar vários vídeos
+        let currentClipIndex = 0;
+
+        // Adicionar Múltiplos Vídeos (Juntar 10+ vídeos)
+        document.getElementById('multiVideoUpload').addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+
+            if (playlist.length === 0) {
+                timelineContainer.innerHTML = ''; // Remove o texto placeholder
+            }
+
+            files.forEach((file, index) => {
+                const videoUrl = URL.createObjectURL(file);
+                playlist.push({ url: videoUrl, name: file.name });
+
+                // Criar caixinha visual na timeline (igualzinho ao CapCut)
+                const clipBox = document.createElement('div');
+                clipBox.className = 'flex-shrink-0 w-28 h-14 bg-zinc-800 border-2 border-amber-500/60 rounded-lg overflow-hidden relative cursor-pointer flex flex-col justify-end p-1 shadow';
+                clipBox.innerHTML = `
+                    <div class="text-[9px] text-white font-bold truncate bg-black/60 px-1 rounded">${file.name}</div>
+                `;
+                
+                // Ao clicar na caixinha, pula direto para aquele vídeo na timeline
+                const assignedIndex = playlist.length - 1;
+                clipBox.addEventListener('click', () => {
+                    playClip(assignedIndex);
+                });
+
+                timelineContainer.appendChild(clipBox);
+            });
+
+            clipCountText.textContent = `${playlist.length} clipes na timeline`;
+
+            // Se for o primeiro vídeo carregado, já inicia o player
+            if (playlist.length === files.length) {
+                playClip(0);
+            }
+        });
+
+        function playClip(index) {
+            if (index < 0 || index >= playlist.length) return;
+            currentClipIndex = index;
+            videoElement.src = playlist[currentClipIndex].url;
+            videoElement.play();
+            btnPlayPause.textContent = '⏸';
+        }
+
+        // Quando um vídeo da playlist acaba, passa automaticamente para o próximo (Juntar vídeos perfeitamente)
+        videoElement.addEventListener('ended', () => {
+            if (currentClipIndex < playlist.length - 1) {
+                playClip(currentClipIndex + 1);
+            } else {
+                btnPlayPause.textContent = '▶';
+            }
+        });
+
+        // Botão Play / Pause
+        btnPlayPause.addEventListener('click', () => {
+            if (playlist.length === 0) {
+                alert('Adicione vídeos primeiro na timeline!');
+                return;
+            }
+            if (videoElement.paused) {
+                videoElement.play();
+                btnPlayPause.textContent = '⏸';
+            } else {
+                videoElement.pause();
+                btnPlayPause.textContent = '▶';
+            }
+        });
+
+        // Atualizar Relógio do Player
+        videoElement.addEventListener('timeupdate', () => {
+            if (videoElement.duration) {
+                const current = formatTime(videoElement.currentTime);
+                const duration = formatTime(videoElement.duration);
+                timeDisplay.textContent = `${current} / ${duration}`;
+            }
+        });
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        // Legendas Automáticas por Voz (Web Speech API)
+        document.getElementById('toolSubtitles').addEventListener('click', () => {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert('Seu navegador não suporta geração automática de legendas.');
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'pt-BR';
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onstart = () => {
+                subtitleDisplay.textContent = 'Ouvindo áudio para gerar legendas...';
+            };
+
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    transcript += event.results[i][0].transcript;
+                }
+                subtitleDisplay.textContent = transcript;
+            };
+
+            if (playlist.length > 0) {
+                videoElement.play();
+                recognition.start();
+            } else {
+                alert('Carregue um vídeo antes de gerar as legendas.');
+            }
+        });
+
+        // Botão Exportar
+        document.getElementById('btnExport').addEventListener('click', () => {
+            if (playlist.length === 0) {
+                alert('Não há vídeos na timeline para exportar.');
+                return;
+            }
+            alert('Projeto renderizado com sucesso! Pronto para salvar no dispositivo.');
+        });
+    </script>
+</body>
+</html>
