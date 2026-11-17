@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>WebCut Pro</title>
+    
+    <!-- Configuração PWA para abrir sem barra e como App Nativo -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href='data:application/manifest+json,{"name": "WebCut Pro", "short_name": "WebCut", "start_url": ".", "display": "standalone", "background_color": "#121212", "theme_color": "#121212"}'>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -18,10 +25,9 @@
     <!-- TOPO: Player e Botão Tela Cheia / Exportar -->
     <header class="bg-black/90 px-4 py-2 flex justify-between items-center border-b border-zinc-800">
         <div class="flex items-center gap-2">
-            <button id="btnFullscreen" class="bg-zinc-800 text-amber-400 text-[10px] px-2 py-1 rounded font-bold border border-amber-500/30">🖥️ Tela Cheia</button>
+            <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider">⚡ WebCut Pro</span>
         </div>
         <div class="flex items-center gap-2">
-            <span class="text-[10px] text-zinc-400 font-bold hidden sm:inline">PROJETO CAPCUT WEB</span>
             <button id="btnExport" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs transition">Exportar</button>
         </div>
     </header>
@@ -98,25 +104,9 @@
         const timeDisplay = document.getElementById('timeDisplay');
         const subtitleDisplay = document.getElementById('subtitleDisplay');
         const clipCountText = document.getElementById('clipCountText');
-        const btnFullscreen = document.getElementById('btnFullscreen');
 
         let playlist = [];
         let currentClipIndex = 0;
-
-        // Ativar Tela Cheia Real para sumir com as barras do navegador
-        btnFullscreen.addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    alert('Erro ao tentar entrar em tela cheia: ' + err.message);
-                });
-                btnFullscreen.textContent = '❌ Sair Tela Cheia';
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-                btnFullscreen.textContent = '🖥️ Tela Cheia';
-            }
-        });
 
         // Adicionar Vários Vídeos
         document.getElementById('multiVideoUpload').addEventListener('change', (e) => {
@@ -160,7 +150,6 @@
             btnPlayPause.textContent = '⏸';
         }
 
-        // Passa automaticamente para o próximo vídeo quando um acaba (Juntar sequencial)
         videoElement.addEventListener('ended', () => {
             if (currentClipIndex < playlist.length - 1) {
                 playClip(currentClipIndex + 1);
@@ -178,8 +167,8 @@
                 videoElement.play();
                 btnPlayPause.textContent = '⏸';
             } else {
-                videoElement.paused ? videoElement.play() : videoElement.pause();
-                btnPlayPause.textContent = videoElement.paused ? '▶' : '⏸';
+                videoElement.pause();
+                btnPlayPause.textContent = '▶';
             }
         });
 
