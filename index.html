@@ -4,28 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>WebCut Pro</title>
-    
-    <!-- Configuração PWA para abrir sem barra e como App Nativo -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href='data:application/manifest+json,{"name": "WebCut Pro", "short_name": "WebCut", "start_url": ".", "display": "standalone", "background_color": "#121212", "theme_color": "#121212"}'>
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-        body { background-color: #121212; color: #f1f1f1; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+        body { background-color: #121212; color: #f1f1f1; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; height: 100dvh; display: flex; flex-direction: column; margin: 0; padding: 0; }
         .timeline-track::-webkit-scrollbar { height: 6px; }
         .timeline-track::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
     </style>
 </head>
 <body class="h-screen flex flex-col justify-between">
 
-    <!-- TOPO: Player e Botão Tela Cheia / Exportar -->
-    <header class="bg-black/90 px-4 py-2 flex justify-between items-center border-b border-zinc-800">
+    <!-- TOPO: Botão de Tela Cheia Real e Exportar -->
+    <header class="bg-black px-4 py-2.5 flex justify-between items-center border-b border-zinc-800">
         <div class="flex items-center gap-2">
-            <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider">⚡ WebCut Pro</span>
+            <button id="btnForceFullscreen" class="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs px-3 py-1 rounded-md font-extrabold flex items-center gap-1 shadow">
+                📺 Tela Cheia (Remover Barra)
+            </button>
         </div>
         <div class="flex items-center gap-2">
             <button id="btnExport" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs transition">Exportar</button>
@@ -104,9 +102,30 @@
         const timeDisplay = document.getElementById('timeDisplay');
         const subtitleDisplay = document.getElementById('subtitleDisplay');
         const clipCountText = document.getElementById('clipCountText');
+        const btnForceFullscreen = document.getElementById('btnForceFullscreen');
 
         let playlist = [];
         let currentClipIndex = 0;
+
+        // Forçar Tela Cheia Real (Remove a barra do navegador instantaneamente)
+        btnForceFullscreen.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().then(() => {
+                    // Tenta travar a rotação em modo paisagem/retrato se suportado
+                    if (screen.orientation && screen.orientation.lock) {
+                        screen.orientation.lock('portrait-primary').catch(() => {});
+                    }
+                }).catch(err => {
+                    alert('Toque na tela novamente para ativar a tela cheia.');
+                });
+                btnForceFullscreen.textContent = '❌ Sair da Tela Cheia';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+                btnForceFullscreen.textContent = '📺 Tela Cheia (Remover Barra)';
+            }
+        });
 
         // Adicionar Vários Vídeos
         document.getElementById('multiVideoUpload').addEventListener('change', (e) => {
