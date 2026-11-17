@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>WebCut Pro</title>
+    <title>WebCut Pro - Editor Estilo CapCut</title>
+    
+    <!-- Configurações PWA (Modo Aplicativo de Tela Cheia Nativa) -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="WebCutPro">
+
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -18,14 +23,15 @@
 </head>
 <body class="h-screen flex flex-col justify-between">
 
-    <!-- TOPO: Botão de Tela Cheia Real e Exportar -->
-    <header class="bg-black px-4 py-2.5 flex justify-between items-center border-b border-zinc-800">
+    <!-- TOPO: Player e Botão Tela Cheia / Exportar -->
+    <header class="bg-black px-4 py-2.5 flex justify-between items-center border-b border-zinc-800 shrink-0">
         <div class="flex items-center gap-2">
             <button id="btnForceFullscreen" class="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs px-3 py-1 rounded-md font-extrabold flex items-center gap-1 shadow">
-                📺 Tela Cheia (Remover Barra)
+                📺 Tela Cheia
             </button>
         </div>
         <div class="flex items-center gap-2">
+            <span class="text-[10px] text-zinc-400 font-bold hidden sm:inline">WEBCUT PRO</span>
             <button id="btnExport" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs transition">Exportar</button>
         </div>
     </header>
@@ -44,7 +50,7 @@
     </div>
 
     <!-- LINHA DO TEMPO (TIMELINE) -->
-    <div class="bg-zinc-900 border-t border-zinc-800 p-2.5 flex flex-col gap-2">
+    <div class="bg-zinc-900 border-t border-zinc-800 p-2.5 flex flex-col gap-2 shrink-0">
         <div class="flex justify-between items-center text-xs text-zinc-400">
             <div class="flex items-center gap-2">
                 <button id="btnPlayPause" class="w-7 h-7 rounded-full bg-zinc-800 text-white flex items-center justify-center text-xs font-bold">▶</button>
@@ -63,7 +69,7 @@
     </div>
 
     <!-- BARRA DE FERRAMENTAS INFERIOR (Estilo CapCut) -->
-    <nav class="bg-zinc-950 border-t border-zinc-900 grid grid-cols-7 py-2 px-1 text-center text-[10px] text-zinc-400">
+    <nav class="bg-zinc-950 border-t border-zinc-900 grid grid-cols-7 py-2 px-1 text-center text-[10px] text-zinc-400 shrink-0">
         <button id="toolEdit" class="flex flex-col items-center gap-0.5 hover:text-white">
             <span class="text-sm">✂️</span>
             <span>Editar</span>
@@ -111,23 +117,22 @@
         btnForceFullscreen.addEventListener('click', () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().then(() => {
-                    // Tenta travar a rotação em modo paisagem/retrato se suportado
                     if (screen.orientation && screen.orientation.lock) {
                         screen.orientation.lock('portrait-primary').catch(() => {});
                     }
                 }).catch(err => {
                     alert('Toque na tela novamente para ativar a tela cheia.');
                 });
-                btnForceFullscreen.textContent = '❌ Sair da Tela Cheia';
+                btnForceFullscreen.textContent = '❌ Sair';
             } else {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
                 }
-                btnForceFullscreen.textContent = '📺 Tela Cheia (Remover Barra)';
+                btnForceFullscreen.textContent = '📺 Tela Cheia';
             }
         });
 
-        // Adicionar Vários Vídeos
+        // Adicionar Vários Vídeos (Juntar na Timeline)
         document.getElementById('multiVideoUpload').addEventListener('change', (e) => {
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
@@ -169,6 +174,7 @@
             btnPlayPause.textContent = '⏸';
         }
 
+        // Passa automaticamente para o próximo vídeo quando um acaba
         videoElement.addEventListener('ended', () => {
             if (currentClipIndex < playlist.length - 1) {
                 playClip(currentClipIndex + 1);
@@ -203,7 +209,7 @@
             return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         }
 
-        // Legendas Automáticas por Voz
+        // Legendas Automáticas por Voz (Web Speech API)
         document.getElementById('toolSubtitles').addEventListener('click', () => {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
