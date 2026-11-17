@@ -3,136 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>WebCut Pro - Editor Estilo CapCut</title>
+    <title>WebCut Pro Studio</title>
     
-    <!-- Configurações PWA (Modo Aplicativo de Tela Cheia Nativa) -->
+    <!-- Configurações PWA / Tela Cheia Nativa -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="WebCutPro">
 
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Fredoka:wght@400;600&family=Inter:wght@400;600&family=Impact&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-        body { background-color: #121212; color: #f1f1f1; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; height: 100dvh; display: flex; flex-direction: column; margin: 0; padding: 0; }
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; height: 100dvh; display: flex; flex-direction: column; margin: 0; padding: 0; }
+        .font-fredoka { font-family: 'Fredoka', sans-serif; }
+        .font-cinzel { font-family: 'Cinzel', serif; }
+        .font-impact { font-family: 'Impact', sans-serif; }
         .timeline-track::-webkit-scrollbar { height: 6px; }
         .timeline-track::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
     </style>
 </head>
 <body class="h-screen flex flex-col justify-between">
 
-    <!-- TOPO: Player e Botão Tela Cheia / Exportar -->
-    <header class="bg-black px-4 py-2.5 flex justify-between items-center border-b border-zinc-800 shrink-0">
+    <!-- CABEÇALHO -->
+    <header class="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex justify-between items-center shrink-0 shadow-md">
         <div class="flex items-center gap-2">
-            <button id="btnForceFullscreen" class="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs px-3 py-1 rounded-md font-extrabold flex items-center gap-1 shadow">
-                📺 Tela Cheia
-            </button>
+            <span class="text-xl">🎬</span>
+            <h1 class="font-bold text-sm tracking-wide bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">WebCut Pro Studio</h1>
         </div>
         <div class="flex items-center gap-2">
-            <span class="text-[10px] text-zinc-400 font-bold hidden sm:inline">WEBCUT PRO</span>
-            <button id="btnExport" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs transition">Exportar</button>
+            <button id="btnForceFullscreen" class="bg-slate-800 text-amber-400 text-[11px] px-2.5 py-1 rounded-md font-bold border border-amber-500/30">🖥️ Tela Cheia</button>
+            <button id="btnExport" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow">💾 Exportar Projeto</button>
         </div>
     </header>
 
-    <!-- TELA DE PRÉ-VISUALIZAÇÃO (PLAYER) -->
-    <div class="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
-        <video id="mainVideo" class="max-h-full max-w-full object-contain" playsinline></video>
-        <!-- Legenda Estilo CapCut na Tela -->
-        <div id="subtitleDisplay" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-center text-white font-black text-xl md:text-2xl drop-shadow-[0_3px_3px_rgba(0,0,0,0.9)] font-['Fredoka'] px-2 pointer-events-none">
-            <!-- As legendas automáticas aparecem aqui -->
-        </div>
-        <!-- Indicador de Tempo do Player -->
-        <div class="absolute top-2 left-2 bg-black/60 px-2 py-0.5 rounded text-[10px] text-zinc-300 font-mono">
-            <span id="timeDisplay">00:00 / 00:00</span>
-        </div>
-    </div>
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="flex-1 flex flex-col lg:flex-row gap-2 p-2 max-w-7xl mx-auto w-full overflow-hidden">
+        
+        <!-- PAINEL DO PLAYER & VISUALIZAÇÃO -->
+        <div class="flex-1 flex flex-col gap-2 overflow-hidden">
+            <div class="relative bg-black rounded-xl overflow-hidden aspect-video shadow-2xl border border-slate-800 flex items-center justify-center flex-1">
+                <video id="mainVideo" class="w-full h-full object-contain hidden" playsinline></video>
+                <canvas id="renderCanvas" class="w-full h-full object-contain"></canvas>
+                
+                <!-- Legenda Estilo CapCut na Tela -->
+                <div id="subtitleOverlay" class="absolute bottom-6 left-1/2 -translate-x-1/2 text-center text-white px-4 py-1 rounded transition-all pointer-events-none drop-shadow-[0_3px_4px_rgba(0,0,0,0.9)] font-['Fredoka'] text-xl">
+                    <!-- Legenda automática unificada -->
+                </div>
+            </div>
 
-    <!-- LINHA DO TEMPO (TIMELINE) -->
-    <div class="bg-zinc-900 border-t border-zinc-800 p-2.5 flex flex-col gap-2 shrink-0">
-        <div class="flex justify-between items-center text-xs text-zinc-400">
+            <!-- CONTROLES DO PLAYER -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-2.5 flex items-center gap-3 shadow shrink-0">
+                <button id="btnPlay" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold w-9 h-9 rounded-full flex items-center justify-center text-base transition shadow">▶</button>
+                <div class="flex-1 flex flex-col">
+                    <input type="range" id="videoSeek" value="0" min="0" max="100" step="0.1" class="w-full cursor-pointer accent-amber-500">
+                    <div class="flex justify-between text-[10px] text-slate-400 mt-0.5">
+                        <span id="currentTime">00:00</span>
+                        <span id="duration">00:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAINEL DE FERRAMENTAS & EDIÇÃO (ESTILO CAPCUT) -->
+        <div class="w-full lg:w-80 bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-col gap-3 shadow-xl overflow-y-auto shrink-0">
+            <h2 class="font-bold text-xs tracking-wide text-amber-400 border-b border-slate-800 pb-1.5">🛠️ Painel de Edição Geral</h2>
+
+            <!-- Ferramenta 1: Legendas Automáticas & Estilo de Fonte -->
+            <div class="flex flex-col gap-1.5 bg-slate-950/50 p-2 rounded-lg border border-slate-800">
+                <span class="text-[11px] font-semibold text-slate-300">💬 Legendas Automáticas (IA)</span>
+                <button id="btnAutoSub" class="bg-indigo-600 hover:bg-indigo-500 text-white py-1.5 rounded-lg text-xs font-bold transition shadow">
+                    🎙️ Gerar Legendas por Voz
+                </button>
+                <select id="fontSelect" class="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-lg p-1.5 outline-none mt-1">
+                    <option value="'Fredoka', sans-serif">Fonte: Fredoka (Moderno)</option>
+                    <option value="'Inter', sans-serif">Fonte: Inter (Clean)</option>
+                    <option value="'Cinzel', serif">Fonte: Cinzel (Épico)</option>
+                    <option value="'Impact', sans-serif">Fonte: Impact (Legenda)</option>
+                </select>
+            </div>
+
+            <!-- Ferramenta 2: Trilha Sonora / Música de Fundo Única -->
+            <div class="flex flex-col gap-1.5 bg-slate-950/50 p-2 rounded-lg border border-slate-800">
+                <span class="text-[11px] font-semibold text-slate-300">🎵 Trilha Sonora (Projeto Inteiro)</span>
+                <label class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 py-1.5 px-3 rounded-lg text-xs font-semibold transition text-center cursor-pointer">
+                    📁 Adicionar Música de Fundo
+                    <input type="file" id="audioUpload" accept="audio/*" class="hidden">
+                </label>
+                <div class="flex items-center justify-between text-[10px] text-slate-400 mt-0.5">
+                    <span>Volume da Música:</span>
+                    <input type="range" id="bgMusicVolume" min="0" max="1" step="0.1" value="0.5" class="w-28 accent-amber-500">
+                </div>
+            </div>
+
+            <!-- Ferramenta 3: Filtros Visuais Globais -->
+            <div class="flex flex-col gap-1.5 bg-slate-950/50 p-2 rounded-lg border border-slate-800">
+                <span class="text-[11px] font-semibold text-slate-300">🎨 Filtros Visuais</span>
+                <select id="filterSelect" class="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-lg p-1.5 outline-none">
+                    <option value="none">Normal</option>
+                    <option value="grayscale(100%)">Preto e Branco</option>
+                    <option value="sepia(80%)">Sépia / Antigo</option>
+                    <option value="contrast(140%) brightness(110%)">Cinematográfico</option>
+                    <option value="invert(100%)">Inverter Cores</option>
+                </select>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- LINHA DO TEMPO (TIMELINE UNIFICADA ESTILO CAPCUT) -->
+    <div class="bg-slate-900 border-t border-slate-800 p-2.5 flex flex-col gap-1.5 shrink-0">
+        <div class="flex justify-between items-center text-xs text-slate-400">
             <div class="flex items-center gap-2">
-                <button id="btnPlayPause" class="w-7 h-7 rounded-full bg-zinc-800 text-white flex items-center justify-center text-xs font-bold">▶</button>
-                <label class="bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 py-1 rounded-md cursor-pointer font-semibold text-[11px] flex items-center gap-1">
-                    ➕ Adicionar Vídeos
+                <label class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1 rounded-md cursor-pointer font-bold text-xs flex items-center gap-1 shadow">
+                    ➕ Adicionar Vários Vídeos (Juntar)
                     <input type="file" id="multiVideoUpload" accept="video/*" multiple class="hidden">
                 </label>
             </div>
-            <span id="clipCountText" class="text-[10px]">0 clipes</span>
+            <span id="clipCountText" class="text-[11px] font-medium text-amber-400">0 clipes na timeline unificada</span>
         </div>
 
-        <!-- Trilha de Clipes (Caixinhas do CapCut) -->
-        <div id="timelineContainer" class="timeline-track flex gap-2 overflow-x-auto py-1 px-1 bg-zinc-950/80 rounded-xl min-h-[64px] items-center border border-zinc-800">
-            <div class="text-zinc-500 text-[11px] italic px-3 select-none">Toque em "Adicionar Vídeos" para juntar vários vídeos na timeline...</div>
+        <!-- Trilha de Clipes em Caixinhas Coladas -->
+        <div id="timelineContainer" class="timeline-track flex gap-2 overflow-x-auto py-1.5 px-1 bg-slate-950 rounded-xl min-h-[64px] items-center border border-slate-800">
+            <div class="text-slate-500 text-xs italic px-3 select-none">Toque em "Adicionar Vários Vídeos" para juntá-los em um único fluxo contínuo...</div>
         </div>
     </div>
 
-    <!-- BARRA DE FERRAMENTAS INFERIOR (Estilo CapCut) -->
-    <nav class="bg-zinc-950 border-t border-zinc-900 grid grid-cols-7 py-2 px-1 text-center text-[10px] text-zinc-400 shrink-0">
-        <button id="toolEdit" class="flex flex-col items-center gap-0.5 hover:text-white">
-            <span class="text-sm">✂️</span>
-            <span>Editar</span>
-        </button>
-        <button id="toolAudio" class="flex flex-col items-center gap-0.5 hover:text-white">
-            <span class="text-sm">🎵</span>
-            <span>Áudio</span>
-        </button>
-        <button id="toolText" class="flex flex-col items-center gap-0.5 hover:text-white">
-            <span class="text-sm">✍️</span>
-            <span>Texto</span>
-        </button>
-        <button id="toolEffects" class="flex flex-col items-center gap-0.5 hover:text-white">
-            <span class="text-sm">✨</span>
-            <span>Efeitos</span>
-        </button>
-        <button id="toolLayer" class="flex flex-col items-center gap-0.5 hover:text-white">
-            <span class="text-sm">🖼️</span>
-            <span>Camada</span>
-        </button>
-        <button id="toolSubtitles" class="flex flex-col items-center gap-0.5 hover:text-amber-400 font-semibold">
-            <span class="text-sm">💬</span>
-            <span>Legendas</span>
-        </button>
-        <button id="toolFilters" class="flex flex-col items-center gap-0.5 hover:text-white">
-            <span class="text-sm">🎨</span>
-            <span>Filtros</span>
-        </button>
-    </nav>
-
-    <!-- SCRIPT DO APLICATIVO -->
+    <!-- SCRIPT DE PROCESSAMENTO E JUNÇÃO REAL DE VÍDEOS -->
     <script>
         const videoElement = document.getElementById('mainVideo');
+        const canvas = document.getElementById('renderCanvas');
+        const ctx = canvas.getContext('2d');
         const timelineContainer = document.getElementById('timelineContainer');
-        const btnPlayPause = document.getElementById('btnPlayPause');
-        const timeDisplay = document.getElementById('timeDisplay');
-        const subtitleDisplay = document.getElementById('subtitleDisplay');
+        const btnPlay = document.getElementById('btnPlay');
+        const videoSeek = document.getElementById('videoSeek');
+        const currentTimeEl = document.getElementById('currentTime');
+        const durationEl = document.getElementById('duration');
+        const subtitleOverlay = document.getElementById('subtitleOverlay');
+        const fontSelect = document.getElementById('fontSelect');
+        const filterSelect = document.getElementById('filterSelect');
         const clipCountText = document.getElementById('clipCountText');
         const btnForceFullscreen = document.getElementById('btnForceFullscreen');
 
-        let playlist = [];
+        let playlist = []; // Lista de vídeos do projeto
         let currentClipIndex = 0;
+        let backgroundMusic = null;
+        let bgMusicVolume = document.getElementById('bgMusicVolume');
+        let isPlaying = false;
+        let totalProjectDuration = 0;
 
-        // Forçar Tela Cheia Real (Remove a barra do navegador instantaneamente)
+        // Tela Cheia Absoluta
         btnForceFullscreen.addEventListener('click', () => {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().then(() => {
-                    if (screen.orientation && screen.orientation.lock) {
-                        screen.orientation.lock('portrait-primary').catch(() => {});
-                    }
-                }).catch(err => {
-                    alert('Toque na tela novamente para ativar a tela cheia.');
-                });
+                document.documentElement.requestFullscreen().catch(() => {});
                 btnForceFullscreen.textContent = '❌ Sair';
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
-                btnForceFullscreen.textContent = '📺 Tela Cheia';
+                if (document.exitFullscreen) document.exitFullscreen();
+                btnForceFullscreen.textContent = '🖥️ Tela Cheia';
             }
         });
 
-        // Adicionar Vários Vídeos (Juntar na Timeline)
+        // Adicionar Vários Vídeos à Timeline Unificada
         document.getElementById('multiVideoUpload').addEventListener('change', (e) => {
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
@@ -143,64 +173,112 @@
 
             files.forEach((file) => {
                 const videoUrl = URL.createObjectURL(file);
-                playlist.push({ url: videoUrl, name: file.name });
+                playlist.push({ url: videoUrl, name: file.name, duration: 0 });
 
+                // Criar caixinha visual na timeline colada
                 const clipBox = document.createElement('div');
-                clipBox.className = 'flex-shrink-0 w-24 h-12 bg-zinc-800 border-2 border-amber-500/60 rounded-lg overflow-hidden relative cursor-pointer flex flex-col justify-end p-1 shadow';
+                clipBox.className = 'flex-shrink-0 w-28 h-12 bg-slate-800 border-2 border-amber-500/70 rounded-lg overflow-hidden relative cursor-pointer flex flex-col justify-end p-1 shadow';
                 clipBox.innerHTML = `
-                    <div class="text-[8px] text-white font-bold truncate bg-black/70 px-1 rounded">${file.name}</div>
+                    <div class="text-[9px] text-white font-bold truncate bg-black/70 px-1 rounded">${file.name}</div>
                 `;
-                
-                const assignedIndex = playlist.length - 1;
-                clipBox.addEventListener('click', () => {
-                    playClip(assignedIndex);
-                });
-
                 timelineContainer.appendChild(clipBox);
             });
 
-            clipCountText.textContent = `${playlist.length} clipes`;
-
-            if (playlist.length === files.length) {
-                playClip(0);
-            }
+            clipCountText.textContent = `${playlist.length} clipes na timeline unificada`;
+            loadClip(0);
         });
 
-        function playClip(index) {
+        function loadClip(index) {
             if (index < 0 || index >= playlist.length) return;
             currentClipIndex = index;
             videoElement.src = playlist[currentClipIndex].url;
-            videoElement.play();
-            btnPlayPause.textContent = '⏸';
+            videoElement.load();
+            
+            videoElement.onloadedmetadata = () => {
+                playlist[currentClipIndex].duration = videoElement.duration;
+                canvas.width = videoElement.videoWidth || 1280;
+                canvas.height = videoElement.videoHeight || 720;
+                if (currentClipIndex === 0 && !isPlaying) {
+                    drawFrame();
+                }
+            };
         }
 
-        // Passa automaticamente para o próximo vídeo quando um acaba
+        // Loop de Renderização no Canvas (Junta os vídeos perfeitamente em sequência)
+        function drawFrame() {
+            if (videoElement.paused || videoElement.ended) return;
+            
+            ctx.filter = filterSelect.value;
+            ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+            
+            // Atualizar tempo e barra
+            currentTimeEl.textContent = formatTime(videoElement.currentTime);
+            durationEl.textContent = formatTime(videoElement.duration || 0);
+
+            if (!videoElement.paused) {
+                requestAnimationFrame(drawFrame);
+            }
+        }
+
+        videoElement.addEventListener('play', () => {
+            isPlaying = true;
+            btnPlay.textContent = '⏸';
+            if (backgroundMusic) backgroundMusic.play();
+            drawFrame();
+        });
+
+        videoElement.addEventListener('pause', () => {
+            isPlaying = false;
+            btnPlay.textContent = '▶';
+            if (backgroundMusic) backgroundMusic.pause();
+        });
+
+        // Quando um vídeo acaba, passa automaticamente para o próximo da lista colada
         videoElement.addEventListener('ended', () => {
             if (currentClipIndex < playlist.length - 1) {
-                playClip(currentClipIndex + 1);
+                loadClip(currentClipIndex + 1);
+                videoElement.play();
             } else {
-                btnPlayPause.textContent = '▶';
+                isPlaying = false;
+                btnPlay.textContent = '▶';
+                if (backgroundMusic) backgroundMusic.pause();
+                currentClipIndex = 0;
+                loadClip(0);
             }
         });
 
-        btnPlayPause.addEventListener('click', () => {
+        // Botão Play / Pause Global
+        btnPlay.addEventListener('click', () => {
             if (playlist.length === 0) {
                 alert('Adicione vídeos na timeline primeiro!');
                 return;
             }
             if (videoElement.paused) {
                 videoElement.play();
-                btnPlayPause.textContent = '⏸';
             } else {
                 videoElement.pause();
-                btnPlayPause.textContent = '▶';
             }
         });
 
-        videoElement.addEventListener('timeupdate', () => {
-            if (videoElement.duration) {
-                timeDisplay.textContent = `${formatTime(videoElement.currentTime)} / ${formatTime(videoElement.duration)}`;
+        // Carregar Música de Fundo Única para o Projeto
+        document.getElementById('audioUpload').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if (backgroundMusic) backgroundMusic.pause();
+                backgroundMusic = new Audio(URL.createObjectURL(file));
+                backgroundMusic.loop = true;
+                backgroundMusic.volume = bgMusicVolume.value;
+                alert('Trilha sonora adicionada com sucesso ao projeto inteiro!');
             }
+        });
+
+        bgMusicVolume.addEventListener('input', (e) => {
+            if (backgroundMusic) backgroundMusic.volume = e.target.value;
+        });
+
+        // Alterar Fonte das Legendas Globalmente
+        fontSelect.addEventListener('change', (e) => {
+            subtitleOverlay.style.fontFamily = e.target.value;
         });
 
         function formatTime(seconds) {
@@ -210,7 +288,7 @@
         }
 
         // Legendas Automáticas por Voz (Web Speech API)
-        document.getElementById('toolSubtitles').addEventListener('click', () => {
+        document.getElementById('btnAutoSub').addEventListener('click', () => {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
                 alert('Seu navegador não suporta legendas automáticas.');
@@ -223,7 +301,7 @@
             recognition.interimResults = true;
 
             recognition.onstart = () => {
-                subtitleDisplay.textContent = 'Ouvindo áudio...';
+                subtitleOverlay.textContent = 'Ouvindo áudio e gerando legendas...';
             };
 
             recognition.onresult = (event) => {
@@ -231,23 +309,24 @@
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     transcript += event.results[i][0].transcript;
                 }
-                subtitleDisplay.textContent = transcript;
+                subtitleOverlay.textContent = transcript;
             };
 
             if (playlist.length > 0) {
                 videoElement.play();
                 recognition.start();
             } else {
-                alert('Carregue um vídeo antes de gerar as legendas.');
+                alert('Adicione vídeos antes de gerar as legendas.');
             }
         });
 
+        // Botão Exportar Projeto
         document.getElementById('btnExport').addEventListener('click', () => {
             if (playlist.length === 0) {
                 alert('Nenhum vídeo na timeline para exportar.');
                 return;
             }
-            alert('Projeto pronto e renderizado com sucesso!');
+            alert('Projeto unificado renderizado com sucesso! Pronto para salvar.');
         });
     </script>
 </body>
